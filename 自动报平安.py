@@ -6,7 +6,7 @@ import os
 # 自己的账号密码
 # key为推送消息的
 users = eval(os.environ['users'])
-logUrl = "http://yiqing.ctgu.edu.cn/wx/index/login.do?"
+logUrl = "http://yiqing.ctgu.edu.cn/wx/health/main.do"
 
 
 def sentMsg(msg, key):
