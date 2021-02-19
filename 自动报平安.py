@@ -38,6 +38,7 @@ def sentOne(username, password, key,proxy):
             logUrl, data=postData,headers =header,timeout=None, proxies=proxies)
     except:
         sentMsg('网页无响应/请更换代理', key)
+        print("网页无响应/请更换代理")
     # *******从提交页面获取 表单信息**********
 
     # 构建表单（默认身体健康)
