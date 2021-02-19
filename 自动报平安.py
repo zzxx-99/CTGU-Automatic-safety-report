@@ -15,25 +15,29 @@ def sentMsg(msg, key):
     return requests.post(api_url, headers=headers, timeout=None).content
 
 
-def sentOne(username, password, key):
+def sentOne(username, password, key,proxy):
     header = {
         # origin:http://yiqing.ctgu.edu.cn
         # "Content-Type": "application/json;charset=UTF-8",
-        'Referer': "http://yiqing.ctgu.edu.cn/wx/index/login.do?currSchool=ctgu&CURRENT_YEAR=2019",
+        'Referer': "http://yiqing.ctgu.edu.cn/wx/index/login.do?currSchool=ctgu&CURRENT_YEAR=2019&showWjdc=false&studentShowWjdc=false",
         # 模仿谷歌浏览器的登录
-        'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36"
+        'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36"
     }
-
+    proxies = {
+    'http': proxy,
+    'https': proxy
+    }
     yiqingSession = requests.session()
-
+    yiqingSession.keep_alive = False
     postData = {
         "username": username,
         "password": password
     }
-
-    responseRes = yiqingSession.post(
-        logUrl, data=postData, headers=header, timeout=None)
-
+    try:
+        responseRes = yiqingSession.post(
+            logUrl, data=postData,headers =header,timeout=None, proxies=proxies)
+    except:
+        sentMsg('网页无响应/请更换代理', key)
     # *******从提交页面获取 表单信息**********
 
     # 构建表单（默认身体健康)
@@ -67,14 +71,16 @@ def sentOne(username, password, key):
     }
 
     getFormurl = "http://yiqing.ctgu.edu.cn/wx/health/toApply.do"
-    responseRes = yiqingSession.get(getFormurl, timeout=None)
-
+    responseRes = yiqingSession.get(getFormurl, timeout=5,headers =header, verify=False, proxies=proxies)
     # 获取必要信息填入表单
     soup = BeautifulSoup(responseRes.text, "html.parser")
     getFormlist = soup.find_all('input')[0:15]
 
     for Formdata in getFormlist:
-        postData[Formdata.attrs['name']] = Formdata.attrs['value']
+        try:
+            postData[Formdata.attrs['name']] = Formdata.attrs['value']
+        except:
+            print("没name字段")
 
     # *************提交最终表单***********
 
@@ -83,13 +89,12 @@ def sentOne(username, password, key):
     header['Referer'] = "http://yiqing.ctgu.edu.cn/wx/health/toApply.do"
 
     responseRes = yiqingSession.post(
-        postFormurl, data=postData, headers=header, timeout=None)
-
+        postFormurl, data=postData,headers =header, verify=False, timeout=None, proxies=proxies)
     print(responseRes.text)
-    sentMsg(responseRes.text, key)
+    sentMsg('用户' + username + ':'+ responseRes.text, key)
 
 
-for username, password, key in users:
+for username, password, key, proxy in users:
     # start_new_thread(report,(usr,pas,))
-    sentOne(username, password, key)
+    sentOne(username, password, key,proxy)
     # print(log[-1][-1])
